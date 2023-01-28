@@ -1,0 +1,610 @@
+-- 오라클 설치및 환경구축
+
+--윈도우 검색창에서 cmd
+cmd 실행
+C:\Users\smhrd> sqlplus / as sysdba
+
+--------------------------
+sql>@C:\Users\user\Desktop\DataBase\create_scott.sql
+
+sql> quit, exit
+-- 디비 재접속
+C:\Users\smhrd>sqlplus hr/hr
+
+-- 학습용 table을 조회
+select table_name from user_tables;
+
+-- 테이블의 구조를 조회
+desc departments
+desc employees
+
+select  *
+from departments;
+
+column department_name format a18;
+
+sql> quit
+
+desc departments;
+desc employees;
+
+
+
+
+select * from departments;
+
+--- sqlplus 명령어
+column department_name format a20;
+set pagesize 60;
+show user;
+show pagesize;
+
+ed
+
+
+desc employees;
+
+select * from employees;
+
+select department_name from departments;
+
+
+
+
+SQL> desc employees;
+
+select last_name from department_name;
+
+select last_name from employees;
+select last_name, salary from employees;
+
+
+-------------------------------------------------------
+---- DQL
+--- SELECT 절
+
+SELECT
+FROM
+[WHERE
+GROUP BY
+HAVING
+ORDER BY]
+대괄호는 생략 가능.
+
+
+1. 컬럼 - FROM 절에 기술된 테이블의 항목에 있는 것.
+	select last_name from employees;
+	
+2. 여러개의 컬럼을 기술할 경우에는 "," 로 구분한다.
+	select last_name, salary from employees;
+
+3. * : from 절에 테이블의 모든 항목을 조회.
+	select * from employees;
+
+4. distinct : 중복을 제거한다.
+	select distinct job_id from employees;
+
+5. 별명의 사용
+	select last_name irum from employees;
+	select last_name as irum from employees;
+	select last_name "이름 irum" from employees;
+	select last_name as "이름 irum" from employees;
+
+6. 연산이 가능 (+-*/)
+	select last_name, salary * 12 from employees;
+	
+7. null 을 연산에 참여하면 결과는 null 이다.
+	select last_name, salary, salary * commission_pct
+	from employees;
+
+8. || 문자열을 연결한다.
+	select (last_name || first_name) irum, salary
+	from employees;
+
+column irum format a23;
+
+--- FROM 절
+1. table 명, view 명
+2. 데이터 셋
+3. 여러개의 테이블(조인)
+4. 가상의 테이블 dual
+
+select 2*3+5 from dual;
+select sysdate from dual;
+---------------------------------------------------
+
+
+column last_name format a16;
+
+select job_id from employees;
+1-
+
+select distinct job_id, salary from employees;
+
+
+oracle-hr
+hr
+hr
+
+
+
+----------------------------------------------------------------------
+2일차 2023-01-05
+
+select last_name
+    from employees;
+ 
+select *
+    from employees;
+
+select last_name, salary
+    from employees;
+
+
+select last_name lname, salary, job_id
+    from employees;
+
+select last_name "LName", job_id, salary
+    from employees;
+
+select last_name , job_id, (salary*12) as sal
+    from employees;
+
+select last_name , job_id, salary, commission_pct, (salary*commission_pct) as bonus
+    from employees;
+
+select (last_name || '-' || first_name) as irum, job_id, salary, commission_pct, 
+        (salary*commission_pct) as bonus
+    from employees;
+
+----------------------------------------------------------------------------------------------------------
+-- where 절
+-- 조건 절
+1. 등식으로 조건을 표현다.
+
+select last_name, salary
+    from employees
+    where salary > 10000;
+
+2. 등식이 여러개인 경우 : and, or 를 사용
+
+select last_name, salary
+    from employees
+where salary > 5000 
+    and job_id ='ST_MAN';
+
+3. 값, 날짜를 비교할때는 '' 를 사용하고, 대,소문자를 구분한다.
+4. 산술연산이 가능하다.
+    
+    select last_name, salary
+        from employees
+    where salary * 12 > 125000 ;
+    
+----5. 범위의 사용
+
+    select last_name, salary
+        from employees
+    where salary >= 7000 
+         and salary <= 10000 ;
+;;
+    select last_name, job_id, salary
+        from employees
+    where salary between 7000 
+         and 10000 ;;;
+
+;;
+    select last_name, job_id, salary
+        from employees
+    where salary not between 7000 
+         and 10000 ;
+
+----6. 포함의 사용 (or = in)
+    select last_name, job_id, salary, department_id
+        from employees
+    where department_id in (20, 30, 60, 90);
+ ;;
+ 
+    select last_name, job_id, salary, department_id
+        from employees
+    where department_id not in (20, 30, 60, 90);
+;;
+
+    select last_name, job_id, salary, department_id
+        from employees
+    where department_id not in (20, 30, 60, 90);
+;;
+    
+    select last_name, job_id, salary, department_id
+        from employees
+    where department_id in (20, 30, 60, 90);
+ ;;
+ 
+----7. 비슷한 자료의 조회
+--- like , % : 모든 문자열, _ : 한문자.
+    select last_name, job_id, salary, department_id
+        from employees
+    where last_name like '%u%';
+ ;;
+    select last_name, job_id, salary, department_id
+        from employees
+    where last_name like 'H%';
+ ;;
+ 
+    select last_name, job_id, salary, department_id
+        from employees
+    where last_name like '_u%';
+ ;;
+
+    select last_name, job_id, salary, department_id
+        from employees
+    where last_name like '%n';
+ ;;
+
+    select last_name, job_id, salary, department_id
+        from employees
+    where last_name like '%man';
+ ;;
+
+    select last_name, job_id, salary, department_id
+        from employees
+    where last_name like '_h%';
+ ;;
+
+    select last_name, job_id, salary, department_id
+        from employees
+    where last_name like '__h%';
+ ;;
+
+    select last_name, job_id, salary, department_id
+        from employees
+    where last_name like '___h%';
+ ;;
+    select last_name, job_id, salary, department_id
+        from employees
+    where last_name like '___c%';
+ ;;
+ 
+     select last_name, job_id, salary, department_id
+        from employees
+    where last_name like '_____';
+ ;;
+
+     select last_name, job_id, salary, department_id
+        from employees
+    where last_name like '____';
+ ;;
+ 
+      select last_name, job_id, salary, department_id
+        from employees
+    where last_name like '___';
+ ;;
+
+      select last_name, job_id, salary, department_id
+        from employees
+    where last_name like '__e';
+ ;;
+
+      select last_name, job_id, salary, department_id
+        from employees
+    where last_name like '__e%';
+ ;;
+----
+      select last_name, job_id, salary, department_id
+        from employees
+    where last_name like '%e__';
+ ;;
+
+----8. department_id null
+--- 
+----
+
+      select last_name, job_id, salary, department_id
+        from employees
+       where department_id = null;
+
+    select last_name, job_id, salary, department_id
+        from employees
+    where department_id is null;
+
+    select last_name, job_id, salary, department_id
+        from employees
+    where department_id is not null;
+    
+;;
+    select last_name, job_id, salary, department_id
+        from employees
+    where null + salary = null;
+
+-----------------------------------------------------
+--- order by 절
+--- 정렬
+
+;;
+    select last_name, department_id, job_id, salary
+        from employees
+    order by salary ;
+
+;;
+    select last_name, department_id, job_id, salary
+        from employees
+    order by salary desc ;
+
+;;
+    select last_name, department_id, job_id, salary
+        from employees
+    order by salary desc ;
+
+;;
+    select last_name, department_id, job_id, salary
+        from employees
+    order by salary desc ;
+;;
+    desc departments;;
+
+;;
+    select last_name, department_id, job_id, salary
+        from employees
+    where department_id = 60
+    order by salary desc ;
+
+연봉이 150,000 에서 200,000의 범위 이외인 사원들의 이름 및 연봉을 출력하시오. 단 연봉은 AnnSal로 출력하시오.
+;;
+    select last_name, (salary * 12) as "AnnSal"
+        from employees
+    where (salary * 12) < 150000 
+
+
+사원 번호가 176인 사원의 이름과 부서번호를 출력하세요.
+;;
+    select last_name, employee_id
+        from employees
+    where employee_id = 176;;
+    
+    select last_name, (salary * 12) as "AnnSal"
+        from employees
+    where (salary * 12) not between 150000 and 200000;;;
+;;;    
+    
+    select last_name, (salary * 12) as "AnnSal"
+        from employees
+    where (salary * 12) between 150000 and 200000;;;
+;;;    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+-- 01. 사원번호가 176 인 사원의 이름과 부서 번호를 출력하시오
+;;
+    select last_name, department_id
+        from employees
+    where employee_id = 176;
+;;
+
+-- 02. 연봉이 120,000 이상되는 사원들의 이름 및 연봉을 출력하시요
+;;
+    select last_name, (salary*12)
+        from employees
+    where (salary*12) >= 120000;
+
+-- 03. 30부서에서 근무하는 직원 중 직책이 'PU_MAN'인 직원의
+--     의 사원번호, 이름, 직종, 급여, 부서번호를 조회시오.
+
+    select employee_id, last_name, job_id, salary, department_id
+        from employees
+    where department_id = 30 
+        and job_id = 'PU_MAN';
+
+
+
+-- 04. 2003/01/01 일부터 2005/05/30일 사이에 고용된 사원들의 이름, 사번,
+--   고용일자를 출력하시오. 고용일자 순으로 정렬하시오
+;;
+    select last_name, employee_id, hire_date
+        from employees
+    where hire_date >= '2003/01/01' 
+        and hire_date <=  '2005/05/30'
+    order by hire_date desc ;;
+
+
+-- 05. 20번 및 50 번 부서에서 근무하는 모든 사원들의 이름 및 부서 번호를
+--   알파벳순으로 출력하시오
+
+    select last_name, department_id
+        from employees
+    where department_id in (20 , 50)
+        order by last_name ;;
+
+
+-- 06. 2006년도에 고용된 모든 사람들의 이름 및 고용일을 조회한다
+;;
+    select last_name, hire_date
+        from employees
+    where hire_date between '2006/01/01' and '2006/12/31';
+
+    select last_name, hire_date
+        from employees
+    where hire_date like '06%';
+
+
+-- 07. 20 및 50 부서에 근무하며, 연봉이 20,000 ~ 250,000 사이인 사원
+--   들의 이름 및 연봉을 출력하시오
+;;
+    select last_name, (salary * 12)
+        from employees
+    where department_id in (20 , 50) 
+        and (salary * 12) between 20000 and 250000;;
+        
+
+
+-- 08. 매니저가 없는 사람들의 이름 및 업무를 출력하시오
+    select last_name, job_id
+        from employees
+    where manager_id is null;
+
+-- 09. 매니저가 있는 사람들의 이름 및 업무, 매니저번호를 조회한다
+
+    select last_name, job_id, manager_id
+        from employees
+    where manager_id is not null;
+
+-- 10. 커미션을 받는 모든 사원들의 이름, 연봉 및 커미션을 출력하시오.
+--   - 연봉을 역순으로 정렬하고, 연봉은 ANNSAL로 출력하시오
+;;
+    select last_name, (12*salary) as annsal, commission_pct
+        from employees
+    where commission_pct is not null
+        order by annsal desc;
+
+
+-- 11. 이름의 네번째 글자가 h인 사원의 이름을 조회하시오
+;;
+    select last_name
+        from employees
+    where last_name like '___h%';
+
+
+-- 12. 이름에 a 및 e 글자가 있는 사원의 이름을 조회하시오
+;;
+
+    select last_name
+        from employees
+    where last_name like '%a%'
+        and last_name like '%e%';
+
+-- 13. 급여가 2500,3500,7000이 아니며 직업이 SA_REP나 ST_CLERK인 사원의 이름과, 급여, 직업을 출력하시오.
+;;
+
+    select last_name, salary, job_id
+        from employees
+    where salary not in (2500, 3500, 7000) 
+        and job_id in ('SA_REP', 'ST_CLERK');
+
+
+-- 14. 30번 부서내의 모든 직업들을 유일한 값으로 출력하시오.
+--    90번 부서 또한 포함하고, 직업을 오름차순으로 출력하시오
+
+    select distinct job_id
+        from employees
+    where department_id = 30;
+;;
+
+    select distinct job_id
+        from employees
+    where department_id in (30, 90)
+        order by job_id;
+;;
+
+
+-- 15. 회사 전체의 최대 급여, 최소 급여, 급여 총 합 및 평균 급여를 출력하시오
+
+    select max(salary)
+        from employees;
+
+    select max(salary), min(salary), sum(salary), avg(salary)
+        from employees;
+
+-- 16. 각 직종별, 최대 급여, 최소 급여, 급여 총 합 및 평균 급여를 출력하시오.
+--   단 최대 급여는 MAX, 최소 급여는 MIN, 급여 총 합은 SUM 및
+--   평균 급여는 AVG로 출력하고, 직업을 오름차순으로 정렬하시오
+
+    select max(salary), min(salary), sum(salary), avg(salary), job_id
+        from employees
+        group by job_id 
+        order by job_id;
+;;
+
+    select max(salary), min(salary), sum(salary), avg(salary), job_id
+        from employees
+        group by job_id 
+        order by job_id;
+;;
+
+
+-- 17. 동일한 직업을 가진 사원들의 총 수를 출력하시오
+    select count(*), job_id
+        from employees
+        group by job_id 
+        order by job_id;
+
+-- 18. 매니저로 근무하는 사원들의 총 수를 출력하시오
+    select count(distinct manager_id)
+        from employees
+    where manager_id is not null;
+
+-- 19. 사내의 최대 급여 및 최소 급여의 차이를 출력하시오
+    select max(salary) - min(salary)
+        from employees;
+        
+        
+        
+        
+        
+        
+        
+        
+
+-- 20. 매니저의 사번 및 그 매니저 및 사원들 중 최소 급여를 받는 사원의 급여를 출력하시오
+--      - 매니저가 없는 사람들은 제외한다.
+--      - 최소 급여가 5000 미만인 경우는 제외한다.
+--      - 급여 기준 역순으로 조회한다.
+
+
+
+
+
+
+
+-- 21. 급여합계가 10,000보다 많은 직원의
+-- 부서, 직종별 급여합계, 평균급여, 직원수 출력하세요.
+-- 급여는 3자리마다 ","형식으로, 평균급여는 소수점 이하 2자리에서 까지출력하세요
+
+
+
+
+
+-- 22. 모든 사원들의 이름, 부서 이름 및 부서 번호를 출력하시오.
+
+
+
+-- 23. 커미션을 받는 모든 사람들의 이름, 부서 명, 지역 ID 및 도시 명을 출력하시오
+
+
+
+-- 24. 자신의 매니저보다 먼저 고용된 사원들의 이름 및 고용일을 출력하시오
+
+-- 25. 부서 명, 부서위치ID, 각 부서 별 사원 총 수, 각 부서 별 평균 급여를 출력하되,
+--    부서위치를 오름차순으로 출력하시오
+
+-- 26. Zlotkey 와 동일한 부서에 근무하는 모든 사원들의 사번 및 고용날짜를 출력하시오.
+
+-- 27. 회사 전체 평균 급여보다 더 급여를 많이 받는 사원들의 사번 및 이름을 출력하시오
+
+-- 28. 이름에 u 가 포함되는 사원들과 동일 부서에 근무하는 사원들의 사번 및 이름을 출력하시오.
+
+-- 29. 시애틀에 근무하는 사람 중 커미션을 받지않는 모든 사람들의 이름, 부서 명, 지역 ID를 출력하시오
+
+-- 30. 이름이 DAVIES 인 사람보다 후에 고용된 사원들의 이름 및 고용일자를 출력하시오.
+--	   고용일자를 역순으로 출력하시오
+
+-- 31. King 을 매니저로 두고 있는 모든 사원들의 이름 및 급여를 출력하시오
+
+-- 32. 회사 전체 평균급여보다 더 많이 받는 사원들 중 이름에 u 가 있는 사원들이
+--   근무하는 부서에서 근무하는 사원들의 사번, 이름 및 급여를 출력하시오
+
+

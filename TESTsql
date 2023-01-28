@@ -1,0 +1,416 @@
+
+
+
+사용자 정의 함수 
+
+
+
+
+
+-- 함수는 되돌아오는 결과 값(return)이 있다.
+-- 절차적 언어이다.
+
+
+부서 이름을 반환하는 함수
+
+create or replace function fn_dname (dept_id in int)
+						--함수 이름과 정수로 넘어왔을때 dept_id로 받겠다 라는 뜻
+	return varchar                  --- 결과값을 문자열로 리턴했다.
+	is
+                                                        -- 프로그램에서 사용할 변수 선정
+           dnm varchar2(30);   
+begin
+   select department_name into dnm                 --dnm의 변수를 받는다는 뜻
+     from departments
+     where department_id = dept_id;
+   returndnm;
+end;
+/  <-- 함수에서 마지막이라고 끝내는 표시
+
+--ex.
+-- 부서명을 조회하는 사용자 정의함수 이용하여 직원의 이름, 부서이름, 입사일, 급여을 조회하시오..
+select last_name, fn_dname(department_id), hire_date, salary
+  from employees;
+
+
+--함수의 생성 시 꼭 알아야 하는 것들
+create or replace 써서 덮어쓰는 형식으로 저장하자.
+--create만 쓸 경우에는 기존에 있는 함수로 오류가 발생하므로 replace도 쓰자
+--반환 받을 값, 자료형 끝에는 세미콜론(;)쓰기
+--조건이 있는 경우는 where절, 조건이 없을 때는 from절에 세미콜론(;)쓰기
+--반환값return , 함수 생성을 끝낼 시 end 세미콜론(;)쓰기
+--함수 생성 end; 이후 / 마무리
+
+
+
+
+--트리거 TRIGGER 생성 및 사용
+
+
+
+--- 사건이 발생하면 그것을 계기로 여러가지가 일어나는 것
+
+--오렌지 박스  
+--1. delete_emp : 생성할 trigger의 이름.
+--2. 위에 노란색 박스 조건문이라고 생각하면 좋음 명령이 참일 때 실행되며, empbak라는 백업 파일에 기술된 column명에 대한 최근 값들을 저장한다.
+
+--노란색 박스
+--	1. 자바에서 배운 조건문이라고 생각하면 이해가 쉽다.
+--	2. for each row이 절이 있으면 행에 대한 Trigger이다.
+--	3. 행에 대한 Trigger로 emp절이 삭제될 때 그전에  begin절에 임무를 수행한 후 삭제라고 생각.
+
+--- 실습)   지운다는 사건으로 지웠던 데이터를 백업하는 작업
+
+--1.  백업용 테이블 생성
+create table emp_bak as (
+					select emp.* , sysdate as cdate       --> 삭제된 날짜를 알아보기 위해 sysdate 추가
+					from emp where 1<>1);
+
+--2. 트리거 작성
+create or replace TRIGGER emp_delete
+	before delete on emp for each row.     ??- insert delete update에 사용
+	begin 
+	insert into emp_bak values (                --여기에 들어갈 변수는 emp테이블의 변수와 같아야 함
+	:old. EMPNO, :old.ENAME ,:old.JOB ,:old.MGR                  --old는 삭제하기 전의 값 이라는 말
+	,:old.HIREDATE ,:old.SAL ,:old.COMM ,:old.DEPTNO
+	,sysdate
+	);
+	end;
+	/
+	
+	*old 쓸 때 변수를 정확히 불러오려면 emp 테이블에 들어가서 열 드래그 후 복 붙 추천
+	
+3. emp 데이터 삭제
+delete emp where EMPNO in (100,101);
+
+4. 백업용 테이블 확인
+-- 위에서 지워진 행을 확인하는 테이블을 불러오는 거임
+--쉽게 생각하면 지워진 행 확인이라고 알면 됨
+select * from emp_bak;
+
+이런식으로 내가 지운 데이터를 확인할 수 있음(휴지통 같은 역할)
+
+
+
+
+
+저기 자줏빛 화살표가 외래키로 두 테이블이 연결되어있다는 뜻의 화살표임!
+
+먼저 DEPT 테이블이 있어야 외래키로 연결 가능하니까
+DEPT 테이블 만들고 ---> EMP 테이블 만들기
+
+여기서 사진에서 주어진 정보
+- ' * ' 별 표시는 Not Null로 한다.  --null 값은 column 명을 기술x, 값도 x
+- 각 테이블의 제약조건
+- EMP 테이블의 Key
+- *PK : EMP_EMPNO_PK
+- FK : EMP_DEPTNO_FK
+
+- DEPT 테이블의 Key
+- PK : DEPT_DEPTNO_PK
+
+
+사진의 정보를 토대로 테이블 만들기
+
+1. DEPT테이블 만들기
+	create table dept(
+	    deptno number(2) primary key
+	   , dname varchar2(14) constraint dname_b not null
+	    ,loc varchar2(13)
+	    );
+
+DEPT 값 넣기
+예시) 
+insert into dept (deptno, dname, loc) values(10, 'Administration', 1700);
+
+2. EMP 테이블 만들기
+	create table emp(
+	    empno number(4)primary key
+	    ,ename varchar2(10) constraint emp_ename_b not null
+	    ,job varchar2(9)constraint emp_job_c not null
+	    ,mgr number(4)
+	    ,hiredate date
+	   ,sal number(7,2)  constraint emp_sal_dnot null
+	    ,comm number(7,2)
+	   ,deptno number(2) references dept(deptno)  -- 외부키
+	    );
+--null 값은 column 명을 기술x, 값도 x
+--밑줄은 그냥 지워도 상관없는 친구들
+	
+EMP 값 넣기
+예시)
+insert into emp (empno, enam, job, mgr, hiredate, sal, comm, deptno)
+values (100, 'King', 'AD_PRES', '03-06-17', 24000, null, 90)
+
+
+
+그룹함수와 서브쿼리
+
+
+다중행함수( 그룹함수)
+종류 : sum(), avg(), count(), min(), max()
+숫자 : sum(), avg() --> 위의 종류 중 이거 뺀 나머지는 숫자 문자 다 사용가능
+null값은 포함되지 않는다
+
+having 절에는 그룹하려는 자료를 제한한다.
+group by 절에는 그룹하려는 항목(column) 기술한다.
+ having 절에는 그룹하려는 자료를 제한한다.
+	
+-- 회사 전체 직원의 급여의 평균, 합계, 최저, 최고, 수급 인원을 조회하시오
+select department_id,job_id
+    ,sum(salary)
+    ,avg(salary) 
+    ,count(salary)
+    ,min(salary)
+    ,max(salary)
+    ,count(department_id)
+    , count(commission_pct)
+from employees
+
+group by department_id,job_id; -- 부서, 직종별로 나눌것이다~
+                                        --group by에 나온 테이블은 가급적 select에 적어야한다.
+	
+--부서별 직원들의 급여 차이를 최고, 최저의 차이 금액 조회
+select department_id ,max(salary) as max_sal, min(salary) as min_sal, 
+    (max(salary) - min(salary)) as pay_cha --여기서 as는 또 다른 이름으로 정의해준다는 말임(너무 이름이 길때 사용 많이함)
+from employees
+group by department_id
+order by department_id; --내림차순 오름차순 정렬하는데 필요한게 order by인가봄
+
+
+-- where : select 절에 조회되는 데이터의 제한하는 거임
+select * from employees
+where department_id = 50;
+
+-- having : group by절에 데이터를 제한/group by 집계함수 값에 대한 데이터를 제한
+select department_id ,max(salary) as max_sal, min(salary) as min_sal, 
+    (max(salary) - min(salary)) as pay_cha        
+from employees
+group by department_id
+having max(salary)>11000;  --group by로 분류된걸 또 제한하는 거임
+
+--평균급여가 15000보다 많은 직종과, 평균급여를 조회하시오.
+select job_id, salary, avg(salary)
+    from employees
+    group by job_id,salary
+    having avg(salary)>15000;
+    
+
+-- 부서별, 직종별, 급여 합계가 10000보다 많은 부서, 직종, 급여합계, 평균 급여를 조회.
+select department_id, job_id, sum (salary), round( avg(salary),1) as avg_sal
+    from employees
+    group by department_id, job_id
+    having sum(salary) > 10000;
+    
+    
+-- 부서별 직원들 급여의 차이가 5000보다 더 큰 부서, 최고, 최저, 차이금액을 조회
+select department_id,max(salary)as mx_sal, min(salary) as mn_sal
+    ,(max(salary)- min(salary)) as char_sal
+    from employees
+    group by department_id
+    having  (max(salary)- min(salary))> 5000;
+
+
+============================================================
+-- 서브쿼리 : 쿼리안에 쿼리가 존재한다.
+-- 조회하고자하는 값을 알지 못할때 사용
+-- 종류 : 단일행 , 다중행 서브쿼리
+-- ()안에 서브쿼리를 기술, where절의 오른쪽에 서브쿼리를 작성한다.
+
+
+-- 직원들 중에 회사의 평균 급여보다 많이 받는 직원의 이름, 직종, 급여를 조회
+select last_name, job_id, salary
+from employees
+where salary > (select avg(salary) from employees); --이런식으로 괄호안에 넣는게 서브쿼리임
+
+-- 직원들 중에 'ST_MAN' 평균급여보다 많이 받는 직원의 이름, 직종, 급여를 조회
+select last_name, job_id, salary
+from employees
+where salary > (select avg(salary) 
+                            from employees
+                            where job_id = 'ST_MAN');
+                            
+-- 직원들중에 최고급여를 받는 직원의 이름, 직종, 급여를 조회...
+
+select last_name, job_id, salary
+from employees
+where salary = (select max(salary) 
+                            from employees);
+
+--최소급여가 80부서의 최소 급여보다 많이 받는 부서의 ID, 최소급여를 조회
+select department_id,  min(salary)
+from employees
+group by department_id
+having min(salary) < (select min(salary) -- 80부서를 따로 select하기위해서! 
+                            from employees
+                            where department_id = 80);
+
+-- 다중행 연산자를 사용하는 서브쿼리 **(다중행이라는게 여러개의 행을 출력해내는거)
+-- 서브쿼리의 다중행 함수
+-- 종류 :  in(or), any(or), all(and) 
+
+이게 서브쿼리로 들어가서 본 쿼리와 비교해서 값을 출력시킴
+select salary    
+        from employees  
+        where department_id = 60; -- (9000,6000,4800,4200)이 값이 나옴
+        
+-- in (or) : 모든 값에 1 : 1로 대응
+-- any(or) : '<any '는 최대값보다 적은값(= 그 어떤값보다 적어야된다) , '>any'는  최소값보다 큰 값(=그 어떤 값보다 커야된다)
+-- all : '<all '는 최소값보다 적은 값, '>all' 최대값보다 큰 값
+
+select last_name, job_id, salary, department_id
+from employees
+where salary < any  (select salary      <--최대값보다 적은값(그 어떤값보다 적어야한다)
+					--여기서 where조건에 최대값보다 적은 값을 적용시켰으니까
+                    from employees      
+			-- ex. 이 select문에서 나오는 가장 큰 값(최댓값)이 9000임, 
+							최대인 9000보다 적은 값을 찾아라 라는 뜻임
+                    where department_id = 60);
+                    
+                    
+select last_name, job_id, salary, department_id
+from employees
+where salary<all  (select salary     --여기서 where조건에 최소값보다 적은 값을 적용시켰음
+                    from employees    
+--이 서브쿼리의 select문에 해당하는 것들 중 salary에서 가장 최소의 값을 출력할꺼다.
+                    where department_id = 60);
+
+select last_name, job_id, salary, department_id
+from employees
+where salary in  (select salary     --여기서 where조건에 in을 적용을 시킴
+                    from employees  -- **여기 이 select문에서 출력되는 것만 salary에서 출력할꺼다
+                    where department_id = 60);
+
+
+
+오라클 관리자 실행
+
+
+
+-- 15장 DCL(Dta Control Language)
+-- DCL : grant to, revoke from
+
+----------------------------------- Oracle-system으로 접속해서 진행해야됨-----
+show user;  --이건 내가 지금 접속하고 있는 시스템이 뭔지 물어보는거임(system이 권한이있기때문에)
+1. 사용자 생성
+create user sohyeon IDENTIFIED by sohyeon;  --계정생성
+		      유저이름                                PW
+		
+2. 오라클 DB에 연결 할 수 있는 권한 부여
+grant create session to sohyeon;         
+
+-- 오라클 sql developer 에 접속 아이디를 생성, 저장할 수 있음.
+
+ --> 근데 여기서 system이 관리자 권한을 가지고 있으니까
+   --> 권한을 sohyoen에게 권한을 주는거임 system 계정에서
+ -->그리고 넘어가서 sohyeon에서 테이블 만들고, 뷰만들고...등등의 역할을 시행하는거임
+
+3. 사용자에게 테이블을 생성할 수 있는 권한과,  다른 사용자에게 부여할 수 있는 권한 제공.
+
+grant create table to (user_name)with grant option;
+테이블 생성 권한                                     다른사용자에게 부여할 수 있는 권한 제공
+
+DB 연결 권한, 자원 사용 권한 부여, 테이블, 뷰, 시퀀스도 한번에 부여할 수 있음.
+--> grant create session, RESOURCE,
+      create table,create view,
+      create sequence
+to (user_name);
+
+테이블 생성 권한 없을 시 오류 
+
+grant create resouce to (user_name);         위의 경우 이거하고 테이블 생성
+
+
+
+4. 사용자 소유의 모든 객체와 같이 사용자의 삭제
+drop user sohyeon cascade;  --지우는 명령
+
+5. 사용자에게 부여된 권한을 조회하는 쿼리 문 작성
+select * from user_sys_privs;
+
+
+
+인덱스와 시퀀스 사용
+
+
+
+
+
+인덱스
+
+- 검색의 속도를 높인다.
+- 물리적인 저장 공간을 가지고 있다.
+- DML이 빈번하게 일어나는 Table에 대해서는 성능의 저하 가져온다.
+                        ** dml이 많이 일어나는 table은 엥간 인덱스 쓰지말아라
+
+인덱스 사용의 고려사항
+1) 열의 정보가 광범위하게 포함되는 경우 
+                --너무 많은거 말고 드문드문 여러군데 있는 거에 써라
+ 2) 조건(where)절, 조인이 자주 일어나는 항목 
+3) 대부분의 질의에 대한 검색결과 2-4%미만인 경우
+
+++ 카테고리별로 구분했을때 유용한 그런 것들에 써라 / 너무 적은 결과를 인덱스하면 불필요하니까
+++ 인덱스 이름은 5년후에 봐도 기억할 수있도록 정해라
+
+
+1. 인덱스 생성
+    
+create index emp_name_idx         -- 인덱스이름
+   on emp_ddl (last_name);              -- 테이블이름에 last_name을 정의하겠다
+            ++ 이렇게 만든건 밑의 where문에 f10을 눌러서 정보를 보면 만들어진걸 알 수 있음
+
+- 테이블이 소유하고 있는 인덱스 확인할때 유용
+select * from user_indexes;
+
+- 인덱스가 어떤 cloumn으로 구성되어있는지 알아볼때 유용
+select * from user_ind_columns;
+
+2. 인덱스 삭제 
+drop index emp_name_idx; 
+
+
+============================================================================
+
+
+
+
+시퀀스(Sequence)
+
+- 고유의 번호를 자동으로 생성한다.
+-  공유가 가능하다.
+- 일반적을 기본키(pK)로 사용한다.
+
+
+1. 시퀀스 만드는 방법
+create sequence empddl_seq  -- 시퀀스 이름
+   increment by 10 --  10씩 증가해라(증감숫자)
+   start with 100   --시작값
+   maxvalue 999999999999999  --여기까지 출력(최대값)
+   nocache      --cache라고 속도빠르게끔 하는건데 대부분 no를 붙힘
+   nocycle;       --마찬가지
+
+2. 시퀀스 삭제 방법
+drop sequence emp_seq;  
+
+++
+select empddl_seq.nextval from dual; -- 반복 시계속 증가 
+select empddl_seq.currval from dual;  -- 현재 currval 값 출력 
+								            nextval이라는 위의 값을 고정
+
+3. 시퀀스 바꾸는거
+alter sequence emp_seq
+   increment by 5
+   maxvalue 9999999
+   nocache
+   nocycle;
+
+
+
+
+
+
+
+
+
+
+

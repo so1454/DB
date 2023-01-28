@@ -1,0 +1,97 @@
+데이터베이스 답안지
+
+[1-1]
+	create table emp (
+	    empno number(4) primary key
+	    ,ename varchar2(10) constraint emp_ename_b not null
+	    ,job varchar2(9) constraint emp_job_c not null
+	    ,mgr number(4)
+	    ,hiredate date
+	   ,sal number(7,2) constraint emp_sal_d not null
+	    ,comm number(7,2)
+	   ,deptno number(2) references dept(deptno)  
+	    );
+
+[1-2]
+	create table dept (
+	    deptno number(2)
+	    ,dname varchar2(14) not null
+	    ,loc varchar2(13)
+         ,constraint dept_id primary key (deptno)
+	    );
+
+[2-1]
+function 은 결과값을 반환하는 함수이다
+procedure은 결과값을 반환하지 않는 함수이다.
+
+[2-2]
+select last_name, job_id, fn_deptnm(department_id), salary
+  from employees;
+
+[3-1]
+create table EMPBAK as (
+	select emp.* , sysdate as cdate
+	from emp where 1<>1);
+
+[3-2]
+ create index ename_idx on empno(ename);
+
+
+[3-3]
+create or replace TRIGGER delete_emp
+
+[3-4]
+직원정보 삭제
+delete emp where EMPNO in (102);
+삭제된 데이터 확인
+select * from EMPBAK;
+
+[4-1]
+select ENAME, JOB, SAL
+from employees
+where SAL > (select avg(SAL) from employees);
+
+[4-2]
+select ename, job, sal,deptno
+from emp
+where job = (select distinct job
+ from emp where deptno = 40);
+
+[4-3]
+올바른 결과가 출력됩니다.
+
+[4-4]
+원인 .
+emp테이블에 dept라는 이름은 존재하지 않아서 실행결과가 올바르지 않은 결과가 조회되었다.
+
+올바르게 수정한 SQL문
+SELECT DEPTNO, SUM(SAL), AVG(SAL), COUNT(*)
+FROM EMP
+WHERE SAL > 28000
+GROUP BY DEPTNO
+ORDER BY DEPTNO ASC;
+
+[5-1]
+1) 열의 정보가 광범위하게 포함되는 경우 
+2) 조건(where)절, 조인이 자주 일어나는 항목 
+3) 대부분의 질의에 대한 검색결과 2-4%미만인 경우
+이와같은 경우를 고려해야합니다.
+
+[5-2]
+시퀀스는
+고유의 번호를 자동으로 생성한다.
+공유가 가능하다.
+일반적을 기본키(pK)로 사용한다.
+주로 연속하는 숫자로 이루어진 웹 서비스의 새로운 게시판 번호나 상품 주문번호 등을 생성할때 사용합니다.
+
+[6-1]
+create user smhrduser IDENTIFIED by 0000;
+
+[6-2]
+grant create session to smhrduser;   
+
+[6-3]
+grant create table to smhrduser with grant option;
+
+[6-4]
+drop user smhrduser cascade;

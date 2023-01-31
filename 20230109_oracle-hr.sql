@@ -1504,9 +1504,18 @@ create sequence temp_seq
 
 select * from hr.employees;
 
+CREATE VIEW VW_SCOREVIEW (TEAMNAME,FINALSCORE)
+    AS(SELECT S.TEAMNAME,SUM(TRY.GETSCORE)
+        FROM STUDENT S,TRYRESULT TRY 
+        WHERE TRY.ISSUCCESS LIKE '%O%'
+        AND S.STUDENTID = TRY.STUDENTID 
+        group by S.TEAMNAME
+        );
 
+SELECT * FROM VW_SCOREVIEW;
+SELECT * FROM TRYRESULT;
 
-
+commit;
 
 
 
